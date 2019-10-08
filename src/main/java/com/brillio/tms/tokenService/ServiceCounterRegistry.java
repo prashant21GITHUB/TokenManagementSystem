@@ -1,26 +1,29 @@
 package com.brillio.tms.tokenService;
 
+import com.brillio.tms.annotation.AppService;
 import com.brillio.tms.tokenGeneration.AssignedToken;
+import com.brillio.tms.tokenGeneration.IAppService;
 import com.brillio.tms.tokenGeneration.Token;
 import com.brillio.tms.tokenGeneration.TokenCategory;
+import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ServiceCounterRegistry implements IServiceCounterRegistry {
+@AppService
+@Repository
+public class ServiceCounterRegistry implements IServiceCounterRegistryService, IAppService {
 
     private final int NORMAL_CATEGORY_COUNTERS = 5;
     private final int PREMIUM_CATEGORY_COUNTERS = 3;
     private int nextCounterNum = 1;
 
-    private final Map<Integer, IServiceCounter> normalCategoryCounters;
-    private final Map<Integer, IServiceCounter> premiumCategoryCounters;
+    private final Map<Integer, ServiceCounter> normalCategoryCounters;
+    private final Map<Integer, ServiceCounter> premiumCategoryCounters;
 
     public ServiceCounterRegistry() {
         premiumCategoryCounters = createNormalCategoryCounters();
         normalCategoryCounters = createPremiumCategoryCounters();
-//        startCounters(premiumCategoryCounters);
-//        startCounters(normalCategoryCounters);
     }
 
     public AssignedToken assignServiceCounter(Token token) {
@@ -35,8 +38,8 @@ public class ServiceCounterRegistry implements IServiceCounterRegistry {
         }
     }
 
-    private Map<Integer, IServiceCounter> createNormalCategoryCounters() {
-        Map<Integer, IServiceCounter> serviceCounterMap = new HashMap<>();
+    private Map<Integer, ServiceCounter> createNormalCategoryCounters() {
+        Map<Integer, ServiceCounter> serviceCounterMap = new HashMap<>();
         int num = 0;
         for(;num < NORMAL_CATEGORY_COUNTERS;) {
             ServiceCounter serviceCounter = new ServiceCounter(nextCounterNum++, TokenCategory.NORMAL);
@@ -45,8 +48,8 @@ public class ServiceCounterRegistry implements IServiceCounterRegistry {
         return serviceCounterMap;
     }
 
-    private Map<Integer, IServiceCounter> createPremiumCategoryCounters() {
-        Map<Integer, IServiceCounter> serviceCounterMap = new HashMap<>();
+    private Map<Integer, ServiceCounter> createPremiumCategoryCounters() {
+        Map<Integer, ServiceCounter> serviceCounterMap = new HashMap<>();
         int num = 0;
         for(;num < PREMIUM_CATEGORY_COUNTERS;) {
             ServiceCounter serviceCounter = new ServiceCounter(nextCounterNum++, TokenCategory.PREMIUM);
@@ -55,10 +58,28 @@ public class ServiceCounterRegistry implements IServiceCounterRegistry {
         return serviceCounterMap;
     }
 
-//    private void startCounters(Map<Integer, IServiceCounter> countersMap) {
-//        for(IServiceCounter counter : countersMap.values()) {
-//            counter.startCounter();
-//        }
-//    }
+    @Override
+    public void start() throws InterruptedException {
+        startCounters(premiumCategoryCounters);
+        startCounters(normalCategoryCounters);
+    }
+
+    @Override
+    public void stop() {
+        stopCounters(normalCategoryCounters);
+        stopCounters(premiumCategoryCounters);
+    }
+
+    private void startCounters(Map<Integer, ServiceCounter> countersMap) {
+        for(ServiceCounter counter : countersMap.values()) {
+            counter.startCounter();
+        }
+    }
+
+    private void stopCounters(Map<Integer, ServiceCounter> countersMap) {
+        for(ServiceCounter counter : countersMap.values()) {
+            counter.stopCounter();
+        }
+    }
 
 }

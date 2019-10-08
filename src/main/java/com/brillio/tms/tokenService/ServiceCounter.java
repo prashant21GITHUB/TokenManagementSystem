@@ -20,9 +20,21 @@ public class ServiceCounter implements IServiceCounter {
         this.counterNumber = counterNumber;
         tokensQueue = new LinkedBlockingQueue<>(MAX_REQUESTS);
         this.category = category;
-        this.startCounter();
     }
 
+    @Override
+    public void serveToken(Token token) {
+        try {
+            tokensQueue.put(token);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public int getServiceCounterNo() {
+        return this.counterNumber;
+    }
 
     public void startCounter() {
         if(!isStarted.getAndSet(true)) {
@@ -45,21 +57,12 @@ public class ServiceCounter implements IServiceCounter {
                        }
                        System.out.println("Serving applicant with token no. " +
                                token.getTokenNumber() + " at counter no. " + counterNumber);
-                       Thread.sleep(1000);
+//                       Thread.sleep(1000);
                    } catch (InterruptedException e) {
                        e.printStackTrace();
                    }
                }
             });
-        }
-    }
-
-    @Override
-    public void serveToken(Token token) {
-        try {
-            tokensQueue.put(token);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 

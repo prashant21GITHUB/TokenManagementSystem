@@ -19,6 +19,4 @@ public class AssignedToken {
     public IServiceCounter getServiceCounter() {
         return serviceCounter;
     }
-
-    public static final AssignedToken EMPTY_TOKEN = new AssignedToken(null, null);
 }

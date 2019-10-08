@@ -1,16 +1,18 @@
 package com.brillio.tms.tokenGeneration;
 
-import com.brillio.tms.tokenService.TokenServiceCounterAssignerService;
+import com.brillio.tms.annotation.AppService;
+import com.brillio.tms.tokenService.AssignServiceCounterService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Singleton
-@Named(value = "ITokenGenerationService")
+//@Singleton
+//@Named(value = "ITokenGenerationService")
+@AppService
+@Service
 public class TokenGenerationServiceImpl implements IAppService, ITokenGenerationService {
 
     private static final int TOTAL_COUNTERS = 4;
@@ -19,12 +21,12 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final DocumentVerificationService documentVerificationService;
     private final TokenGenerator tokenGenerator;
-    private final TokenServiceCounterAssignerService assignerService;
+    private final AssignServiceCounterService assignerService;
 
-    @Inject
+    @Autowired
     public TokenGenerationServiceImpl(DocumentVerificationService documentVerificationService,
                                       TokenGenerator tokenGenerator,
-                                      TokenServiceCounterAssignerService assignerService) {
+                                      AssignServiceCounterService assignerService) {
         this.documentVerificationService = documentVerificationService;
         this.tokenGenerator = tokenGenerator;
         this.assignerService = assignerService;
@@ -48,9 +50,13 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
             VerificationStatus verificationStatus =
                     documentVerificationService.verifyDocuments(applicant, document);
             if(VerificationStatus.SUCCESS.equals(verificationStatus)) {
-                Token token = executorService.submit(
-                        () -> tokenGenerator.generateToken(tokenCategory)
-                ).get();
+                Future<Token> tokenFuture = executorService.submit(
+                        () -> {
+                            System.out.println("Token generated on counter: " + Thread.currentThread().getName());
+                            return tokenGenerator.generateToken(tokenCategory);
+                        }
+                );
+                Token token = tokenFuture.get();
                 tokenOptional = Optional.of(assignerService.assignToken(token));
             } else {
                 System.out.println("Invalid documents");
@@ -63,7 +69,7 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
     }
 
     @Override
-    public void start() {
+    public void start() throws InterruptedException {
         if(!isStarted.get()) {
             executorService = Executors.newFixedThreadPool(TOTAL_COUNTERS, new ThreadFactory() {
                 private int counter = 1;
