@@ -5,6 +5,10 @@ import com.brillio.tms.tokenGeneration.AssignedToken;
 import com.brillio.tms.tokenGeneration.IAppService;
 import com.brillio.tms.tokenGeneration.Token;
 import com.brillio.tms.tokenGeneration.TokenCategory;
+import org.apache.kafka.common.internals.Topic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaAdmin;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
@@ -16,12 +20,15 @@ public class ServiceCounterRegistry implements IServiceCounterRegistryService, I
 
     private final int NORMAL_CATEGORY_COUNTERS = 5;
     private final int PREMIUM_CATEGORY_COUNTERS = 3;
+    private final KafkaAdmin kafkaAdmin;
     private int nextCounterNum = 1;
 
     private final Map<Integer, ServiceCounter> normalCategoryCounters;
     private final Map<Integer, ServiceCounter> premiumCategoryCounters;
 
-    public ServiceCounterRegistry() {
+    @Autowired
+    public ServiceCounterRegistry(KafkaAdmin kafkaAdmin) {
+        this.kafkaAdmin = kafkaAdmin;
         premiumCategoryCounters = createNormalCategoryCounters();
         normalCategoryCounters = createPremiumCategoryCounters();
     }
