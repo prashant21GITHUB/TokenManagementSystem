@@ -13,12 +13,16 @@ public class ServiceCounter implements IServiceCounter {
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final TokenCategory category;
     private ExecutorService executorService;
+    private final String kafkaTopic;
+    private final String counterName;
 
     private final int counterNumber;
 
-    public ServiceCounter(int counterNumber, TokenCategory category) {
+    public ServiceCounter(int counterNumber, TokenCategory category, String counterName, String kafkaTopic) {
         this.counterNumber = counterNumber;
-        tokensQueue = new LinkedBlockingQueue<>(MAX_REQUESTS);
+        this.kafkaTopic = kafkaTopic;
+        this.counterName = counterName;
+        this.tokensQueue = new LinkedBlockingQueue<>(MAX_REQUESTS);
         this.category = category;
     }
 
@@ -75,6 +79,10 @@ public class ServiceCounter implements IServiceCounter {
             }
             executorService.shutdown();
         }
+    }
+
+    public String getKafkaTopic() {
+        return kafkaTopic;
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.brillio.tms.controllers;
 
 import com.brillio.tms.tokenGeneration.*;
 import com.brillio.tms.tokenService.IServiceCounter;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.record.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -38,7 +40,7 @@ public class TMSController {
             serviceCounter.serveToken(token);
             String msg = "Token generated : " + token.getTokenNumber() +
                     " Assigned to counter no: "+serviceCounter.getServiceCounterNo();
-            sendMessage(msg);
+            sendMessage(assignedToken);
             return msg;
         } else {
             return "Token generation failed, check documents...";
@@ -57,17 +59,18 @@ public class TMSController {
     }
 
     @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private KafkaTemplate<String, AssignedToken> kafkaTemplate;
 
-    public void sendMessage(String msg) {
-        kafkaTemplate.send(TOPIC, msg).addCallback(new ListenableFutureCallback<SendResult<String, String>>() {
+    public void sendMessage(AssignedToken msg) {
+//        kafkaTemplate.send(new ProducerRecord<String, AssignedToken>(TOPIC, ))
+        kafkaTemplate.send(TOPIC, msg).addCallback(new ListenableFutureCallback<SendResult<String, AssignedToken>>() {
             @Override
             public void onFailure(Throwable throwable) {
                 System.out.println("Failed to send msg : " + msg+", Error: "+throwable);
             }
 
             @Override
-            public void onSuccess(@Nullable SendResult<String, String> stringStringSendResult) {
+            public void onSuccess(@Nullable SendResult<String, AssignedToken> stringStringSendResult) {
                 System.out.println("Success : "+ stringStringSendResult);
             }
         });
