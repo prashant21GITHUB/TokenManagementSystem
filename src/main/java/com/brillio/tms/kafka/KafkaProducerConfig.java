@@ -1,15 +1,12 @@
 package com.brillio.tms.kafka;
 
-import com.brillio.tms.tokenGeneration.AssignedToken;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,26 +14,32 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
-    @Value(value = "${kafka.bootstrapAddress}")
-    private String bootstrapAddress;
+    @Value(value = "${bootstrap.servers}")
+    private String bootstrapServers;
+    @Value(value = "${key.serializer}")
+    private String keySerializer;
+    @Value(value = "${value.serializer}")
+    private String valueSerializer;
+
+    private KafkaTemplate<String, ApplicantTokenRecord> kafkaTemplate;
 
     @Bean
-    public ProducerFactory<String, AssignedToken> producerFactory() {
+    public ProducerFactory<String, ApplicantTokenRecord> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                bootstrapAddress);
+                bootstrapServers);
         configProps.put(
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class);
+                keySerializer);
         configProps.put(
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                JsonSerializer.class);
+                valueSerializer);
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
     @Bean
-    public KafkaTemplate<String, AssignedToken> kafkaTemplate() {
+    public KafkaTemplate<String, ApplicantTokenRecord> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 }

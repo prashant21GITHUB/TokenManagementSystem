@@ -1,14 +1,19 @@
 package com.brillio.tms.tokenGeneration;
 
-public class Applicant {
+import java.io.Serializable;
 
-    private final String applicantName;
+public class Applicant implements Serializable {
 
-    public Applicant(String applicantName) {
-        this.applicantName = applicantName;
+    private String name;
+
+    public Applicant(String name) {
+        this.name = name;
     }
 
-    public String getApplicantName() {
-        return applicantName;
+    public Applicant() {
+    }
+
+    public String getName() {
+        return name;
     }
 }

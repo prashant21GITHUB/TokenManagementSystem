@@ -9,8 +9,6 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-//@Singleton
-//@Named(value = "ITokenGenerationService")
 @AppService
 @Service
 public class TokenGenerationServiceImpl implements IAppService, ITokenGenerationService {
@@ -35,17 +33,27 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
     @Override
     public Optional<AssignedToken> generateToken(Applicant applicant,
                                                  ApplicantDocument document) {
-        return generateNextToken(applicant, document, TokenCategory.NORMAL);
+        return generateTokenAndAssignServiceCounter(applicant, document, TokenCategory.NORMAL);
     }
 
     @Override
     public Optional<AssignedToken> generatePremiumToken(Applicant applicant,
                                                         ApplicantDocument document) {
-        return generateNextToken(applicant, document, TokenCategory.PREMIUM);
+        return generateTokenAndAssignServiceCounter(applicant, document, TokenCategory.PREMIUM);
     }
 
-    private Optional<AssignedToken> generateNextToken(Applicant applicant, ApplicantDocument document, TokenCategory tokenCategory) {
-        Optional<AssignedToken> tokenOptional = Optional.empty();
+    private Optional<AssignedToken> generateTokenAndAssignServiceCounter(Applicant applicant, ApplicantDocument document,
+                                                                         TokenCategory tokenCategory) {
+        Optional<Token> tokenOptional = generateNextToken(applicant, document, tokenCategory);
+        if(tokenOptional.isPresent()) {
+            AssignedToken assignedToken = assignerService.assignToken(tokenOptional.get(), applicant);
+            return Optional.of(assignedToken);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Token> generateNextToken(Applicant applicant, ApplicantDocument document, TokenCategory tokenCategory) {
+        Optional<Token> tokenOptional = Optional.empty();
         try {
             VerificationStatus verificationStatus =
                     documentVerificationService.verifyDocuments(applicant, document);
@@ -56,8 +64,7 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
                             return tokenGenerator.generateToken(tokenCategory);
                         }
                 );
-                Token token = tokenFuture.get();
-                tokenOptional = Optional.of(assignerService.assignToken(token));
+                tokenOptional = Optional.of(tokenFuture.get());
             } else {
                 System.out.println("Invalid documents");
             }

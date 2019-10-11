@@ -1,8 +1,10 @@
 package com.brillio.tms.tokenService;
 
-import com.brillio.tms.tokenGeneration.Token;
+import com.brillio.tms.tokenGeneration.TokenCategory;
 
 public interface IServiceCounter {
-    void serveToken(Token token);
-    int getServiceCounterNo();
+    String getName();
+    String getQueueName();
+
+    TokenCategory servingTokenCategory();
 }
