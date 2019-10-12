@@ -1,8 +1,8 @@
 package com.brillio.tms.tokenService;
 
-import com.brillio.tms.tokenGeneration.Applicant;
-import com.brillio.tms.tokenGeneration.AssignedToken;
-import com.brillio.tms.tokenGeneration.Token;
+import com.brillio.tms.models.Applicant;
+import com.brillio.tms.models.AssignedToken;
+import com.brillio.tms.models.Token;
 
 public interface IAssignServiceCounterService {
     AssignedToken assignToken(Token token, Applicant applicant);

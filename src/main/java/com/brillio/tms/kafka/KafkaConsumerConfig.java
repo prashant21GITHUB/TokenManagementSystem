@@ -18,12 +18,14 @@ public class KafkaConsumerConfig {
     private String bootstrapServers;
     @Value(value = "${group.id}")
     private String groupId;
-    @Value(value = "${enable.auto.commit}")
-    private String enableAutoCommitFlag;
-    @Value(value = "${auto.commit.interval.ms}")
-    private String autoCommitIntervalMsConfig;
+//    @Value(value = "${enable.auto.commit}")
+//    private String enableAutoCommitFlag;
+//    @Value(value = "${auto.commit.interval.ms}")
+//    private String autoCommitIntervalMsConfig;
     @Value(value = "${session.timeout.ms}")
     private String sessionTimeoutMsConfig;
+    @Value(value = "${max.poll.records}")
+    private String maxPollRecords;
     @Value(value = "${key.deserializer}")
     private String keyDeserializer;
     @Value(value = "${value.deserializer}")
@@ -44,12 +46,16 @@ public class KafkaConsumerConfig {
     private void loadProperties(Properties properties) {
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, enableAutoCommitFlag);
-        properties.setProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, autoCommitIntervalMsConfig);
+//        properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, enableAutoCommitFlag);
+//        properties.setProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, autoCommitIntervalMsConfig);
         properties.setProperty(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, sessionTimeoutMsConfig);
+        properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
+//        properties.setProperty(JsonDeserializer.TRUSTED_PACKAGES, "*");
+//        properties.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.brillio.tms.models.ApplicantTokenRecord");
+//        properties.setProperty(JsonDeserializer.TRUSTED_PACKAGES, "com.brillio.tms.models.*");
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
                 keyDeserializer);
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                valueDeserializer);
+                "com.brillio.tms.kafka.json.ObjectDeserializer");
     }
 }

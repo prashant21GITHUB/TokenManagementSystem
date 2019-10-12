@@ -1,6 +1,6 @@
 package com.brillio.tms.tokenService;
 
-import com.brillio.tms.tokenGeneration.TokenCategory;
+import com.brillio.tms.enums.TokenCategory;
 
 public interface IServiceCounter {
     String getName();

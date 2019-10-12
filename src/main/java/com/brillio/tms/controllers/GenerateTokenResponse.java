@@ -1,12 +1,13 @@
 package com.brillio.tms.controllers;
 
-import com.brillio.tms.tokenGeneration.Applicant;
-import com.brillio.tms.tokenGeneration.Token;
+import com.brillio.tms.models.Applicant;
+import com.brillio.tms.models.Token;
 
 public class GenerateTokenResponse {
     private Token token;
     private Applicant applicant;
     private String serviceCounter;
+    private String errorMessage = "";
 
     public GenerateTokenResponse(Applicant applicant) {
         this.applicant = applicant;
@@ -34,5 +35,13 @@ public class GenerateTokenResponse {
 
     public void setServiceCounter(String serviceCounter) {
         this.serviceCounter = serviceCounter;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 }

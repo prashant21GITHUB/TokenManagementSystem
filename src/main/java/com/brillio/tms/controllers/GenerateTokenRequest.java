@@ -1,7 +1,7 @@
 package com.brillio.tms.controllers;
 
-import com.brillio.tms.tokenGeneration.Applicant;
-import com.brillio.tms.tokenGeneration.ApplicantDocument;
+import com.brillio.tms.models.Applicant;
+import com.brillio.tms.models.ApplicantDocument;
 
 import java.io.Serializable;
 

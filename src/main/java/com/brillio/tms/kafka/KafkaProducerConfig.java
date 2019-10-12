@@ -1,5 +1,6 @@
 package com.brillio.tms.kafka;
 
+import com.brillio.tms.models.ApplicantTokenRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,8 +22,6 @@ public class KafkaProducerConfig {
     @Value(value = "${value.serializer}")
     private String valueSerializer;
 
-    private KafkaTemplate<String, ApplicantTokenRecord> kafkaTemplate;
-
     @Bean
     public ProducerFactory<String, ApplicantTokenRecord> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -34,7 +33,7 @@ public class KafkaProducerConfig {
                 keySerializer);
         configProps.put(
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                valueSerializer);
+                "com.brillio.tms.kafka.json.ObjectSerializer");
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 

@@ -1,5 +1,9 @@
 package com.brillio.tms.tokenGeneration;
 
+import com.brillio.tms.models.Applicant;
+import com.brillio.tms.models.ApplicantDocument;
+import com.brillio.tms.models.AssignedToken;
+
 import java.util.Optional;
 
 public interface ITokenGenerationService {

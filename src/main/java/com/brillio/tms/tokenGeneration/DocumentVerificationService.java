@@ -1,5 +1,8 @@
 package com.brillio.tms.tokenGeneration;
 
+import com.brillio.tms.enums.VerificationStatus;
+import com.brillio.tms.models.Applicant;
+import com.brillio.tms.models.ApplicantDocument;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -9,7 +12,6 @@ public class DocumentVerificationService implements IDocumentVerificationService
     public VerificationStatus verifyDocuments(Applicant applicant, ApplicantDocument document) {
 //        System.out.println("Verifying documents...");
         try {
-//            Thread.sleep(1000);
             return applicant.getName().equals(document.getApplicantName()) ?
                     VerificationStatus.SUCCESS : VerificationStatus.FAILURE;
         } catch (Exception e) {

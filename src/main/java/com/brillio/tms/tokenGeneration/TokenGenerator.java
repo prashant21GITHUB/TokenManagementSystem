@@ -1,5 +1,7 @@
 package com.brillio.tms.tokenGeneration;
 
+import com.brillio.tms.enums.TokenCategory;
+import com.brillio.tms.models.Token;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicInteger;

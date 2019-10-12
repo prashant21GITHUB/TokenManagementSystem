@@ -2,10 +2,11 @@ package com.brillio.tms.tokenService;
 
 import com.brillio.tms.annotation.AppService;
 import com.brillio.tms.kafka.KafkaConsumerConfig;
+import com.brillio.tms.kafka.KafkaMonitorService;
 import com.brillio.tms.kafka.KafkaTopicConfig;
 import com.brillio.tms.tokenGeneration.IAppService;
-import com.brillio.tms.tokenGeneration.Token;
-import com.brillio.tms.tokenGeneration.TokenCategory;
+import com.brillio.tms.models.Token;
+import com.brillio.tms.enums.TokenCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -24,16 +25,19 @@ public class ServiceCounterRegistry implements IServiceCounterRegistryService, I
     private Map<Integer, ServiceCounter> premiumCategoryCounters;
     private final KafkaTopicConfig kafkaTopicConfig;
     private final KafkaConsumerConfig kafkaConsumerConfig;
+    private final KafkaMonitorService kafkaMonitorService;
 
     @Autowired
     public ServiceCounterRegistry(KafkaTopicConfig topicConfig,
                                   KafkaConsumerConfig kafkaConsumerConfig,
                                   @Value("${service.counter.id.category.pairs}") String[] serviceCounterList,
-                                  @Value("${service.counter.queue.names}") String[] serviceCounterKafkaTopics) {
+                                  @Value("${service.counter.queue.names}") String[] serviceCounterKafkaTopics,
+                                  KafkaMonitorService kafkaMonitorService) {
         this.serviceCounterList = serviceCounterList;
         this.serviceCounterKafkaTopics = serviceCounterKafkaTopics;
         this.kafkaTopicConfig = topicConfig;
         this.kafkaConsumerConfig = kafkaConsumerConfig;
+        this.kafkaMonitorService = kafkaMonitorService;
         if(!checkValidityForCounterList()) {
             throw new IllegalArgumentException("Please provide service counter list and corresponding kafka topics");
         }
@@ -49,7 +53,7 @@ public class ServiceCounterRegistry implements IServiceCounterRegistryService, I
             arr = counterCategoryPair.split(":");
             TokenCategory category = TokenCategory.parse(arr[1]);
             ServiceCounter serviceCounter = new ServiceCounter(category, arr[0],
-                    serviceCounterKafkaTopics[index], kafkaConsumerConfig);
+                    serviceCounterKafkaTopics[index], kafkaConsumerConfig, kafkaMonitorService);
             if(category.equals(TokenCategory.PREMIUM)) {
                 premiumCategoryCounters.put(premiumCounterCount++, serviceCounter);
             } else {

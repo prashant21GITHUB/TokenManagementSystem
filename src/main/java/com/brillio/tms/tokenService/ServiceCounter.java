@@ -1,15 +1,19 @@
 package com.brillio.tms.tokenService;
 
-import com.brillio.tms.kafka.ApplicantTokenRecord;
+import com.brillio.tms.enums.TokenCategory;
 import com.brillio.tms.kafka.KafkaConsumerConfig;
-import com.brillio.tms.tokenGeneration.Applicant;
-import com.brillio.tms.tokenGeneration.Token;
-import com.brillio.tms.tokenGeneration.TokenCategory;
+import com.brillio.tms.kafka.KafkaMonitorService;
+import com.brillio.tms.kafka.KafkaServiceListener;
+import com.brillio.tms.models.ApplicantTokenRecord;
+import com.brillio.tms.models.Token;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.common.TopicPartition;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ServiceCounter implements IServiceCounter {
 
     private final BlockingQueue<Token> tokensQueue;
-    private final static int MAX_REQUESTS = 50;
+    private final static int MAX_REQUESTS = 500;
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final TokenCategory category;
     private ExecutorService executorService;
@@ -25,19 +29,30 @@ public class ServiceCounter implements IServiceCounter {
     private final String counterName;
     private final Consumer<String, ApplicantTokenRecord> kafkaConsumer;
     private final AtomicBoolean isSubscribedToTopic = new AtomicBoolean(false);
+    private final KafkaMonitorService kafkaMonitorService;
+    private final AtomicBoolean isKafkaServiceRunning = new AtomicBoolean(false);
+    private ExecutorService waitingThread;
 
     public ServiceCounter(TokenCategory category,
                           String counterName,
                           String queueName,
-                          KafkaConsumerConfig kafkaConsumerConfig) {
+                          KafkaConsumerConfig kafkaConsumerConfig, KafkaMonitorService kafkaMonitorService) {
         this.queueName = queueName;
         this.counterName = counterName;
+        this.kafkaMonitorService = kafkaMonitorService;
         this.tokensQueue = new LinkedBlockingQueue<>(MAX_REQUESTS);
         this.category = category;
-        kafkaConsumer = kafkaConsumerConfig.newConsumer();
+        this.kafkaConsumer = kafkaConsumerConfig.newConsumer();
+        this.kafkaMonitorService.startMonitoring(new KafkaServiceListener() {
+            @Override
+            public void onRunningStatusChanged(boolean isRunning) {
+                isKafkaServiceRunning.set(isRunning);
+            }
+        });
+        this.waitingThread = Executors.newFixedThreadPool(1);
     }
 
-    private void serveToken(Token token, Applicant applicant) {
+    private void serveToken(Token token) {
         try {
             tokensQueue.put(token);
         } catch (InterruptedException e) {
@@ -79,17 +94,50 @@ public class ServiceCounter implements IServiceCounter {
     }
 
     private void subscribeToTopic() {
-        kafkaConsumer.subscribe(Collections.singletonList(queueName));
+        kafkaConsumer.subscribe(Collections.singletonList(queueName), new ConsumerRebalanceListener() {
+            @Override
+            public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+            }
+
+            @Override
+            public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+                System.out.println("Assigned: "+ partitions);
+            }
+        });
+
         isSubscribedToTopic.set(true);
         executorService.submit(() -> {
             while (isSubscribedToTopic.get()) {
-                ConsumerRecords<String, ApplicantTokenRecord> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(100));
-                for (ConsumerRecord<String, ApplicantTokenRecord> record : consumerRecords) {
-                    ApplicantTokenRecord tokenRecord = record.value();
-                    serveToken(tokenRecord.getToken(), tokenRecord.getApplicant());
+                waitIfKafkaServiceIsNotRunning();
+                try {
+                    ConsumerRecords<String, ApplicantTokenRecord> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(100));
+                    if(!consumerRecords.isEmpty()) {
+                        for (ConsumerRecord<String, ApplicantTokenRecord> record : consumerRecords) {
+                            ApplicantTokenRecord tokenRecord = record.value();
+                            serveToken(tokenRecord.getToken());
+                        }
+                        kafkaConsumer.commitSync();
+                    }
+
+                } catch (Exception e) {
+                    System.out.println(e);
                 }
             }
         });
+    }
+
+    private void waitIfKafkaServiceIsNotRunning() {
+        if(!isKafkaServiceRunning.get()) {
+            waitingThread.submit(() -> {
+               while (!isKafkaServiceRunning.get()) {
+                   try {
+                       Thread.sleep(5000 );
+                   } catch (InterruptedException e) {
+                       e.printStackTrace();
+                   }
+               }
+            });
+        }
     }
 
     public void stopCounter() {

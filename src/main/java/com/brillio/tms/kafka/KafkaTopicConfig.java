@@ -1,6 +1,7 @@
 package com.brillio.tms.kafka;
 
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,16 +12,21 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @PropertySource("classpath:kafka.properties")
 public class KafkaTopicConfig {
 
+    @Value(value = "${bootstrap.servers}")
+    private String bootstrapServers;
+
     private final Properties kafkaProperties = new Properties();
 
     @PostConstruct
-    public void loadKafkaProperties() {
-        loadProperties(kafkaProperties);
+    public void loadProperties() {
+        kafkaProperties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     }
 
     public void createTopic(String topicName) {
@@ -40,30 +46,23 @@ public class KafkaTopicConfig {
         }
     }
 
-    @Value(value = "${bootstrap.servers}")
-    private String bootstrapServers;
-    @Value(value = "${group.id}")
-    private String groupId;
-    @Value(value = "${enable.auto.commit}")
-    private String enableAutoCommitFlag;
-    @Value(value = "${auto.commit.interval.ms}")
-    private String autoCommitIntervalMsConfig;
-    @Value(value = "${session.timeout.ms}")
-    private String sessionTimeoutMsConfig;
-    @Value(value = "${key.deserializer}")
-    private String keyDeserializer;
-    @Value(value = "${value.deserializer}")
-    private String valueDeserializer;
+    public boolean isKafkaServerRunning() {
+        AdminClient adminClient = null;
+        try {
+            adminClient = AdminClient.create(kafkaProperties);
+            ListTopicsResult topics = adminClient.listTopics();
+            Set<String> names = topics.names().get(5000, TimeUnit.MILLISECONDS);
+            if (names.isEmpty()) {
+                return false;
+            }
+            return true;
+        } catch (Exception ex) {
+            return false;
+        } finally {
+            if(adminClient != null) {
+                adminClient.close();
+            }
+        }
 
-    private void loadProperties(Properties properties) {
-        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, enableAutoCommitFlag);
-        properties.setProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, autoCommitIntervalMsConfig);
-        properties.setProperty(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, sessionTimeoutMsConfig);
-        properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                keyDeserializer);
-        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                valueDeserializer);
     }
 }

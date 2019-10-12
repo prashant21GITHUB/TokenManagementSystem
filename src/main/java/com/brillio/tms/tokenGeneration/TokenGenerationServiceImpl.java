@@ -1,6 +1,12 @@
 package com.brillio.tms.tokenGeneration;
 
 import com.brillio.tms.annotation.AppService;
+import com.brillio.tms.enums.TokenCategory;
+import com.brillio.tms.enums.VerificationStatus;
+import com.brillio.tms.models.Applicant;
+import com.brillio.tms.models.ApplicantDocument;
+import com.brillio.tms.models.AssignedToken;
+import com.brillio.tms.models.Token;
 import com.brillio.tms.tokenService.AssignServiceCounterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
