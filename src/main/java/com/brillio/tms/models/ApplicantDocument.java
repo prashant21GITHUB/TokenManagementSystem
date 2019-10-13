@@ -5,9 +5,9 @@ import java.io.Serializable;
 public class ApplicantDocument implements Serializable {
 
     private String applicantName;
-    private int documentNum;
+    private Integer documentNum;
 
-    public ApplicantDocument(String applicantName, int documentNum) {
+    public ApplicantDocument(String applicantName, Integer documentNum) {
         this.applicantName = applicantName;
         this.documentNum = documentNum;
     }
@@ -19,7 +19,7 @@ public class ApplicantDocument implements Serializable {
         return applicantName;
     }
 
-    public int getDocumentNum() {
+    public Integer getDocumentNum() {
         return documentNum;
     }
 }

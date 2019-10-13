@@ -1,5 +1,6 @@
 package com.brillio.tms.kafka;
 
+import com.brillio.tms.TMSConfig;
 import com.brillio.tms.annotation.AppService;
 import com.brillio.tms.tokenGeneration.IAppService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,22 +8,25 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @AppService
 @Service
 public class KafkaMonitorService implements IAppService, IKafkaServiceMonitor {
 
-    private final KafkaTopicConfig kafkaTopicConfig;
+    private final long kafkaServerPingInterval;
+    private final KafkaTopicService kafkaTopicService;
     private final List<KafkaServiceListener> listenerList;
-    private ScheduledExecutorService executorService;
+    private ExecutorService executorService;
+    private final AtomicBoolean isServiceRunning = new AtomicBoolean(false);
 
     @Autowired
-    public KafkaMonitorService(KafkaTopicConfig kafkaTopicConfig) {
-        this.kafkaTopicConfig = kafkaTopicConfig;
-        listenerList = new ArrayList<>();
+    public KafkaMonitorService(TMSConfig config, KafkaTopicService kafkaTopicService) {
+        this.kafkaTopicService = kafkaTopicService;
+        this.listenerList = new ArrayList<>();
+        this.kafkaServerPingInterval = config.getKafkaServerPingInterval();
     }
 
     @Override
@@ -38,20 +42,30 @@ public class KafkaMonitorService implements IAppService, IKafkaServiceMonitor {
 
     @Override
     public void start() throws InterruptedException {
-        executorService = Executors.newScheduledThreadPool(1);
-        executorService.scheduleAtFixedRate(new Runnable() {
+        executorService = Executors.newFixedThreadPool(1);
+        executorService.submit(new Runnable() {
             @Override
             public void run() {
-                boolean status = kafkaTopicConfig.isKafkaServerRunning();
-                for(KafkaServiceListener listener : listenerList) {
-                    listener.onRunningStatusChanged(status);
+                isServiceRunning.set(true);
+                boolean status;
+                try {
+                    while (isServiceRunning.get()) {
+                        status = kafkaTopicService.isKafkaServerRunning();
+                        for (KafkaServiceListener listener : listenerList) {
+                            listener.onRunningStatusChanged(status);
+                        }
+                        Thread.sleep(kafkaServerPingInterval);
+                    }
+                } catch (Exception e)  {
+
                 }
             }
-        }, 10000, 10000, TimeUnit.MILLISECONDS);
+        });
     }
 
     @Override
     public void stop() {
+        isServiceRunning.set(false);
         executorService.shutdown();
     }
 }

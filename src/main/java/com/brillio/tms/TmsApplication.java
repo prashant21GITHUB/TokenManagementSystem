@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 @SpringBootApplication(scanBasePackages = {"com.brillio.tms"})
 public class TmsApplication {
@@ -22,6 +23,7 @@ public class TmsApplication {
                 e.printStackTrace();
             }
         }
+
 	}
 
 }

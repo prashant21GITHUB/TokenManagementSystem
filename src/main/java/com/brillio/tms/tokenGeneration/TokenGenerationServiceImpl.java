@@ -1,8 +1,9 @@
 package com.brillio.tms.tokenGeneration;
 
+import com.brillio.tms.TMSConfig;
 import com.brillio.tms.annotation.AppService;
 import com.brillio.tms.enums.TokenCategory;
-import com.brillio.tms.enums.VerificationStatus;
+import com.brillio.tms.exceptions.DocumentVerificationException;
 import com.brillio.tms.models.Applicant;
 import com.brillio.tms.models.ApplicantDocument;
 import com.brillio.tms.models.AssignedToken;
@@ -19,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Service
 public class TokenGenerationServiceImpl implements IAppService, ITokenGenerationService {
 
-    private static final int TOTAL_COUNTERS = 4;
+    private final int TOTAL_COUNTERS;
 
     private ExecutorService executorService;
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
@@ -30,26 +31,29 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
     @Autowired
     public TokenGenerationServiceImpl(DocumentVerificationService documentVerificationService,
                                       TokenGenerator tokenGenerator,
-                                      AssignServiceCounterService assignerService) {
+                                      AssignServiceCounterService assignerService,
+                                      TMSConfig config) {
         this.documentVerificationService = documentVerificationService;
         this.tokenGenerator = tokenGenerator;
         this.assignerService = assignerService;
+        TOTAL_COUNTERS = config.getTokenGenerationCountersSize();
     }
 
     @Override
     public Optional<AssignedToken> generateToken(Applicant applicant,
-                                                 ApplicantDocument document) {
+                                                 ApplicantDocument document) throws DocumentVerificationException {
         return generateTokenAndAssignServiceCounter(applicant, document, TokenCategory.NORMAL);
     }
 
     @Override
     public Optional<AssignedToken> generatePremiumToken(Applicant applicant,
-                                                        ApplicantDocument document) {
+                                                        ApplicantDocument document) throws DocumentVerificationException {
         return generateTokenAndAssignServiceCounter(applicant, document, TokenCategory.PREMIUM);
     }
 
     private Optional<AssignedToken> generateTokenAndAssignServiceCounter(Applicant applicant, ApplicantDocument document,
-                                                                         TokenCategory tokenCategory) {
+                                                                         TokenCategory tokenCategory)
+            throws DocumentVerificationException {
         Optional<Token> tokenOptional = generateNextToken(applicant, document, tokenCategory);
         if(tokenOptional.isPresent()) {
             AssignedToken assignedToken = assignerService.assignToken(tokenOptional.get(), applicant);
@@ -58,26 +62,19 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
         return Optional.empty();
     }
 
-    private Optional<Token> generateNextToken(Applicant applicant, ApplicantDocument document, TokenCategory tokenCategory) {
-        Optional<Token> tokenOptional = Optional.empty();
+    private Optional<Token> generateNextToken(Applicant applicant, ApplicantDocument document, TokenCategory tokenCategory)
+            throws DocumentVerificationException {
         try {
-            VerificationStatus verificationStatus =
-                    documentVerificationService.verifyDocuments(applicant, document);
-            if(VerificationStatus.SUCCESS.equals(verificationStatus)) {
-                Future<Token> tokenFuture = executorService.submit(
-                        () -> {
-                            System.out.println("Token generated on counter: " + Thread.currentThread().getName());
-                            return tokenGenerator.generateToken(tokenCategory);
-                        }
-                );
-                tokenOptional = Optional.of(tokenFuture.get());
-            } else {
-                System.out.println("Invalid documents");
-            }
+            documentVerificationService.verifyDocuments(applicant, document);
+            Future<Token> tokenFuture = executorService.submit(
+                    () -> tokenGenerator.generateToken(tokenCategory)
+            );
+            return Optional.of(tokenFuture.get());
+        } catch (DocumentVerificationException ex) {
+            throw  ex;
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-        } finally {
-            return tokenOptional;
+            return Optional.empty();
         }
     }
 

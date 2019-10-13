@@ -1,5 +1,6 @@
 package com.brillio.tms.tokenService;
 
+import com.brillio.tms.kafka.json.ObjectToJsonSerializer;
 import com.brillio.tms.models.Applicant;
 import com.brillio.tms.models.ApplicantTokenRecord;
 import com.brillio.tms.models.AssignedToken;
@@ -11,20 +12,20 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 @Service
 public class AssignServiceCounterService implements IAssignServiceCounterService {
 
     private final ServiceCounterRegistry serviceCounterRegistry;
     private final KafkaTemplate<String, ApplicantTokenRecord> kafkaTemplate;
+    private final ObjectToJsonSerializer jsonSerializer;
 
     @Autowired
     public AssignServiceCounterService(ServiceCounterRegistry serviceCounterRegistry,
-                                       KafkaTemplate<String, ApplicantTokenRecord> kafkaTemplate) {
+                                       KafkaTemplate<String, ApplicantTokenRecord> kafkaTemplate,
+                                       ObjectToJsonSerializer jsonSerializer) {
         this.serviceCounterRegistry = serviceCounterRegistry;
         this.kafkaTemplate = kafkaTemplate;
+        this.jsonSerializer = jsonSerializer;
     }
 
     @Override
@@ -45,18 +46,8 @@ public class AssignServiceCounterService implements IAssignServiceCounterService
 
             @Override
             public void onSuccess(@Nullable SendResult<String, ApplicantTokenRecord> stringStringSendResult) {
-//                System.out.println("Success : "+ stringStringSendResult);
+                System.out.println(jsonSerializer.convertToJsonString(record));
             }
         });
-    }
-
-    public static void main(String[] args) {
-        InetAddress addr = null;
-        try {
-            addr = InetAddress.getByName("localhost");
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        System.out.println(addr.getCanonicalHostName());
     }
 }

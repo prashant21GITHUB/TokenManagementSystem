@@ -1,7 +1,7 @@
 package com.brillio.tms.tokenService;
 
 import com.brillio.tms.enums.TokenCategory;
-import com.brillio.tms.kafka.KafkaConsumerConfig;
+import com.brillio.tms.kafka.KafkaConsumerService;
 import com.brillio.tms.kafka.KafkaMonitorService;
 import com.brillio.tms.kafka.KafkaServiceListener;
 import com.brillio.tms.models.ApplicantTokenRecord;
@@ -36,13 +36,13 @@ public class ServiceCounter implements IServiceCounter {
     public ServiceCounter(TokenCategory category,
                           String counterName,
                           String queueName,
-                          KafkaConsumerConfig kafkaConsumerConfig, KafkaMonitorService kafkaMonitorService) {
+                          KafkaConsumerService kafkaConsumerService, KafkaMonitorService kafkaMonitorService) {
         this.queueName = queueName;
         this.counterName = counterName;
         this.kafkaMonitorService = kafkaMonitorService;
         this.tokensQueue = new LinkedBlockingQueue<>(MAX_REQUESTS);
         this.category = category;
-        this.kafkaConsumer = kafkaConsumerConfig.newConsumer();
+        this.kafkaConsumer = kafkaConsumerService.newConsumer();
         this.kafkaMonitorService.startMonitoring(new KafkaServiceListener() {
             @Override
             public void onRunningStatusChanged(boolean isRunning) {
@@ -79,10 +79,10 @@ public class ServiceCounter implements IServiceCounter {
                            tokensQueue.clear();
                            break;
                        }
-                       System.out.println("Serving applicant with token no. " +
-                               token.getTokenNumber() + " at counter. " + counterName);
+//                       System.out.println("Processing: { Token:" + token.getTokenNumber() +
+//                            ", Category:"+token.getTokenCategory().name()+", "+
+//                            " ServiceCounter:" + this.counterName + " }");
                    } catch (InterruptedException e) {
-                       //TODO:
                        e.printStackTrace();
                    }
                }
@@ -101,7 +101,6 @@ public class ServiceCounter implements IServiceCounter {
 
             @Override
             public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-                System.out.println("Assigned: "+ partitions);
             }
         });
 
