@@ -7,7 +7,7 @@ import com.brillio.tms.kafka.KafkaConsumerService;
 import com.brillio.tms.kafka.KafkaMonitorService;
 import com.brillio.tms.kafka.KafkaTopicService;
 import com.brillio.tms.models.Token;
-import com.brillio.tms.tokenGeneration.IAppService;
+import com.brillio.tms.IAppService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -84,7 +84,7 @@ public class ServiceCounterRegistry implements IServiceCounterRegistryService, I
     }
 
     @Override
-    public void start() throws InterruptedException {
+    public void start() {
         startCounters(premiumCategoryCounters);
         startCounters(normalCategoryCounters);
     }

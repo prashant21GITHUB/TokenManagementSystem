@@ -1,5 +1,6 @@
 package com.brillio.tms.tokenGeneration;
 
+import com.brillio.tms.IAppService;
 import com.brillio.tms.TMSConfig;
 import com.brillio.tms.annotation.AppService;
 import com.brillio.tms.enums.TokenCategory;
@@ -8,7 +9,8 @@ import com.brillio.tms.models.Applicant;
 import com.brillio.tms.models.ApplicantDocument;
 import com.brillio.tms.models.AssignedToken;
 import com.brillio.tms.models.Token;
-import com.brillio.tms.tokenService.AssignServiceCounterService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,7 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
     private final DocumentVerificationService documentVerificationService;
     private final TokenGenerator tokenGenerator;
     private final AssignServiceCounterService assignerService;
+    private final Logger LOGGER = LoggerFactory.getLogger("TokenGenerationService");
 
     @Autowired
     public TokenGenerationServiceImpl(DocumentVerificationService documentVerificationService,
@@ -40,29 +43,20 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
     }
 
     @Override
-    public Optional<AssignedToken> generateToken(Applicant applicant,  ApplicantDocument document,
-                                                 TokenCategory category) throws DocumentVerificationException {
-        return generateTokenAndAssignServiceCounter(applicant, document, category);
-    }
-
-    private Optional<AssignedToken> generateTokenAndAssignServiceCounter(Applicant applicant, ApplicantDocument document,
-                                                                         TokenCategory tokenCategory)
+    public Optional<AssignedToken> generateTokenAndAssignServiceCounter(Applicant applicant, ApplicantDocument document,
+                                                                        TokenCategory tokenCategory, long requestId)
             throws DocumentVerificationException {
-        Optional<Token> tokenOptional = generateNextToken(applicant, document, tokenCategory);
-        if(tokenOptional.isPresent()) {
-            AssignedToken assignedToken = assignerService.assignToken(tokenOptional.get(), applicant);
-            return Optional.of(assignedToken);
-        }
-        return Optional.empty();
-    }
-
-    private Optional<Token> generateNextToken(Applicant applicant, ApplicantDocument document,
-                                              TokenCategory tokenCategory) throws DocumentVerificationException {
         try {
             VerificationStatus verificationStatus = documentVerificationService.verifyDocuments(applicant, document);
             if(verificationStatus.isSuccess()) {
-                Future<Token> tokenFuture = executorService.submit(
-                        () -> tokenGenerator.generateToken(tokenCategory)
+                Future<AssignedToken> tokenFuture = executorService.submit(
+                        () -> {
+                            Token token =  tokenGenerator.generateToken(tokenCategory);
+                            AssignedToken assignedToken = assignerService.assignToken(token, applicant, requestId);
+                            LOGGER.info( "ReqId: "+ requestId+ ", Token generated: " + token.getTokenNumber() +
+                                    ", Assigned counter: " + assignedToken.getServiceCounter().getName());
+                            return assignedToken;
+                        }
                 );
                 return Optional.of(tokenFuture.get());
             } else {
@@ -75,7 +69,7 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
     }
 
     @Override
-    public void start() throws InterruptedException {
+    public void start() {
         if(!isStarted.get()) {
             executorService = Executors.newFixedThreadPool(TOTAL_COUNTERS, new ThreadFactory() {
                 private int counter = 1;

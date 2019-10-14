@@ -11,10 +11,13 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -25,6 +28,7 @@ public class ServiceCounter implements IServiceCounter {
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final TokenCategory category;
     private ExecutorService executorService;
+    //Kafka topic
     private final String queueName;
     private final String counterName;
     private final Consumer<String, ApplicantTokenRecord> kafkaConsumer;
@@ -32,6 +36,7 @@ public class ServiceCounter implements IServiceCounter {
     private final KafkaMonitorService kafkaMonitorService;
     private final AtomicBoolean isKafkaServiceRunning = new AtomicBoolean(false);
     private ExecutorService waitingThread;
+    private final Logger LOGGER = LoggerFactory.getLogger("ServiceCounter");
 
     public ServiceCounter(TokenCategory category,
                           String counterName,
@@ -43,12 +48,7 @@ public class ServiceCounter implements IServiceCounter {
         this.tokensQueue = new LinkedBlockingQueue<>(MAX_REQUESTS);
         this.category = category;
         this.kafkaConsumer = kafkaConsumerService.newConsumer();
-        this.kafkaMonitorService.startMonitoring(new KafkaServiceListener() {
-            @Override
-            public void onRunningStatusChanged(boolean isRunning) {
-                isKafkaServiceRunning.set(isRunning);
-            }
-        });
+        this.kafkaMonitorService.startMonitoring(isRunning -> isKafkaServiceRunning.set(isRunning));
         this.waitingThread = Executors.newFixedThreadPool(1);
     }
 
@@ -79,10 +79,11 @@ public class ServiceCounter implements IServiceCounter {
                            tokensQueue.clear();
                            break;
                        }
-                       System.out.println("Serving: {" + token +
-                            ", ServiceCounter:" + this.counterName + " }");
+                       LOGGER.info("Serving: {" + token +
+                               ", ServiceCounter:" + this.counterName + " }");
                    } catch (InterruptedException e) {
-                       e.printStackTrace();
+                       LOGGER.error("Failed to get token to serve, Service counter "
+                               + this.counterName);
                    }
                }
             });
@@ -118,7 +119,8 @@ public class ServiceCounter implements IServiceCounter {
                     }
 
                 } catch (Exception e) {
-                    System.out.println(e);
+                    LOGGER.error(Thread.currentThread().getName()  +" failed to consume token records from kafka topic "
+                            + this.queueName);
                 }
             }
         });
@@ -173,8 +175,8 @@ public class ServiceCounter implements IServiceCounter {
 
         ServiceCounter that = (ServiceCounter) o;
 
-        if (queueName != null ? !queueName.equals(that.queueName) : that.queueName != null) return false;
-        return counterName != null ? counterName.equals(that.counterName) : that.counterName == null;
+        if (!Objects.equals(queueName, that.queueName)) return false;
+        return Objects.equals(counterName, that.counterName);
     }
 
     @Override

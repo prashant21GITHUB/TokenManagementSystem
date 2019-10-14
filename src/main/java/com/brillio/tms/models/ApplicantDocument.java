@@ -22,4 +22,12 @@ public class ApplicantDocument implements Serializable {
     public Integer getDocumentNum() {
         return documentNum;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "applicantName:" + applicantName +
+                ", documentNum:" + documentNum +
+                '}';
+    }
 }

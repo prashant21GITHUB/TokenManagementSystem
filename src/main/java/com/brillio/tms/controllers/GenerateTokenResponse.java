@@ -44,4 +44,14 @@ public class GenerateTokenResponse {
     public String getErrorMessage() {
         return errorMessage;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "token:" + token +
+                ", applicant:" + applicant +
+                ", serviceCounter:" + serviceCounter +
+                ", errorMessage:'" + errorMessage + '\'' +
+                '}';
+    }
 }

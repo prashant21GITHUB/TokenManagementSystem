@@ -35,4 +35,13 @@ public class GenerateTokenRequest implements Serializable {
     public void setTokenCategory(TokenCategory tokenCategory) {
         this.tokenCategory = tokenCategory;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "applicant:" + applicant +
+                ", document:" + document +
+                ", tokenCategory:" + tokenCategory +
+                '}';
+    }
 }

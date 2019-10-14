@@ -9,6 +9,7 @@ import com.brillio.tms.models.AssignedToken;
 import java.util.Optional;
 
 public interface ITokenGenerationService {
-    Optional<AssignedToken> generateToken(Applicant applicant, ApplicantDocument document,
-                                          TokenCategory category) throws DocumentVerificationException;
+    Optional<AssignedToken> generateTokenAndAssignServiceCounter(Applicant applicant, ApplicantDocument document,
+                                                                 TokenCategory tokenCategory, long requestId)
+            throws DocumentVerificationException;
 }
