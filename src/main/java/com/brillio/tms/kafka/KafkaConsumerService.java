@@ -1,6 +1,7 @@
 package com.brillio.tms.kafka;
 
 import com.brillio.tms.TMSConfig;
+import com.brillio.tms.tokenService.ServiceCounter;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -10,6 +11,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.Properties;
 
+/**
+ * The users of this class can create a KafkaConsumer and subscribe to a kafka topic with help of KafkaConsumer API.
+ * See {@link KafkaConsumerService#newConsumer()}
+ *
+ * Also see {@link ServiceCounter#subscribeToTopic()}
+ */
 @Service
 public class KafkaConsumerService {
 

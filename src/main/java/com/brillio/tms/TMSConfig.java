@@ -5,6 +5,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.stereotype.Component;
 
+/**
+ * See {@literal application.properties} and {@literal kafka.properties} files under resources directory
+ *
+ */
 @Component
 @PropertySources({
         @PropertySource("classpath:application.properties"),

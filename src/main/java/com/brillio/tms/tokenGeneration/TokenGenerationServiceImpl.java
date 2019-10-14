@@ -18,6 +18,18 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ *  This service is responsible for :
+ *  1 - Start token generation counters at application startup. (Token generation counters are simulated by thread pool)
+ *     Use {@literal token.generation.counters.size} application property to define the no. of token generation
+ *     counters(i.e. size of thread pool)
+ *
+ *  2 -Verify the applicant documents and generate a token number.
+ *  3 -Request the {@link AssignServiceCounterService} to assign a service counter to this token
+ *
+ *  See method: {@link TokenGenerationServiceImpl#generateTokenAndAssignServiceCounter}
+ */
+
 @AppService
 @Service
 public class TokenGenerationServiceImpl implements IAppService, ITokenGenerationService {

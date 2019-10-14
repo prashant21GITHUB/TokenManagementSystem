@@ -1,5 +1,6 @@
 package com.brillio.tms.kafka.json;
 
+import com.brillio.tms.kafka.KafkaProducerConfig;
 import com.brillio.tms.models.ApplicantTokenRecord;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,6 +9,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+/**
+ * Used by {@link KafkaProducerConfig#producerFactory()}
+ */
 @Component
 public class ObjectToJsonSerializer implements Serializer<ApplicantTokenRecord> {
 

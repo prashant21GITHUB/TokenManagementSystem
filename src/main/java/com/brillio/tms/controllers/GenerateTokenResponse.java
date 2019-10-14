@@ -3,6 +3,9 @@ package com.brillio.tms.controllers;
 import com.brillio.tms.models.Applicant;
 import com.brillio.tms.models.Token;
 
+/**
+ * Response object for HTTP POST request to generate token, See {@link TMSController#generateToken} ()}
+ */
 public class GenerateTokenResponse {
     private Token token;
     private Applicant applicant;

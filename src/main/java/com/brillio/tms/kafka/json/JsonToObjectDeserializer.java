@@ -1,5 +1,6 @@
 package com.brillio.tms.kafka.json;
 
+import com.brillio.tms.kafka.KafkaConsumerService;
 import com.brillio.tms.models.ApplicantTokenRecord;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -9,6 +10,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ *  Used by {@link KafkaConsumerService#loadProperties()}
+ */
 @Component
 public class JsonToObjectDeserializer implements Deserializer<ApplicantTokenRecord> {
     private ObjectMapper mapper = new ObjectMapper();

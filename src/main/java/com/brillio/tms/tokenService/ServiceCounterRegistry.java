@@ -14,6 +14,17 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ *  It reads the service counter ids and queue names from following application properties:
+ *  {@literal service.counter.queue.names}
+ * and  {@literal service.counter.id.category.pairs}
+ *
+ * It then creates the service counter instances and also start and stop counters.
+ * See {@link ServiceCounter#startCounter()} and {@link ServiceCounter#stopCounter()}
+ *
+ *  It also balances the load on each service counter and assigns the token request in circular order based on token
+ *  number and category (by maintaining dedicated service counters lists based on category- {@link TokenCategory})
+ */
 @AppService
 @Repository
 public class ServiceCounterRegistry implements IServiceCounterRegistryService, IAppService {

@@ -6,6 +6,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Generates a unique token number(counter based approach)
+ * See {@link TokenGenerationServiceImpl#generateTokenAndAssignServiceCounter}
+ */
 @Component
 public class TokenGenerator implements ITokenGenerator {
 

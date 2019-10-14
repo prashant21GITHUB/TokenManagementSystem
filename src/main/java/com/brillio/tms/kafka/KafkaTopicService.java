@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ *  Used to create Kafka topic, See {@link com.brillio.tms.tokenService.ServiceCounterRegistry#startCounters}
+ */
 @Service
 public class KafkaTopicService {
 
@@ -37,9 +40,9 @@ public class KafkaTopicService {
             adminClient = AdminClient.create(kafkaProperties);
             NewTopic newTopic = new NewTopic(topicName, 1, (short)1); //new NewTopic(topicName, numPartitions, replicationFactor)
             adminClient.createTopics(Collections.singletonList(newTopic));
-
+            LOGGER.info("Created kafka topic: "+ topicName);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Failed to create topic: "+topicName+ ", Error: " + e.getMessage());
         } finally {
             if(adminClient != null) {
                 adminClient.close();

@@ -1,5 +1,9 @@
 package com.brillio.tms.tokenGeneration;
 
+/**
+ * Document verification result object.
+ * See {@link DocumentVerificationService#verifyDocuments}
+ */
 public class  VerificationStatus {
     private final boolean success;
     private final String errorMessage;

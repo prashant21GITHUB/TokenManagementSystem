@@ -14,6 +14,10 @@ import org.springframework.kafka.core.ProducerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Provide kafkaTemplate instance to publish message on kafka topic.
+ * See {@link com.brillio.tms.tokenGeneration.AssignServiceCounterService#assignTokenToServiceCounter}
+ */
 @Configuration
 public class KafkaProducerConfig {
 

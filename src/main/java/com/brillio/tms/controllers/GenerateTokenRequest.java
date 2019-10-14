@@ -6,6 +6,9 @@ import com.brillio.tms.models.ApplicantDocument;
 
 import java.io.Serializable;
 
+/**
+ * Request object for HTTP POST request to generate token, See {@link TMSController#generateToken}
+ */
 public class GenerateTokenRequest implements Serializable {
 
     private Applicant applicant;

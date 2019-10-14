@@ -3,7 +3,8 @@ package com.brillio.tms.tokenService;
 import com.brillio.tms.enums.TokenCategory;
 import com.brillio.tms.kafka.KafkaConsumerService;
 import com.brillio.tms.kafka.KafkaMonitorService;
-import com.brillio.tms.kafka.KafkaServiceListener;
+import com.brillio.tms.models.Applicant;
+import com.brillio.tms.models.ApplicantDocument;
 import com.brillio.tms.models.ApplicantTokenRecord;
 import com.brillio.tms.models.Token;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -21,6 +22,32 @@ import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * This class serves the generated token requests. Each instance of this class is associated with a dedicated
+ * token category. See {@link TokenCategory}
+ *
+ * It subscribe to a kafka topic defined in {@literal service.counter.queue.names} setting in application.properties
+ * Below settings works in conjunction:
+ *      {@literal service.counter.queue.names}
+ * and  {@literal service.counter.id.category.pairs}
+ *
+ * Example:
+ *     service.counter.id.category.pairs : SC1:NORMAL,SC2:NORMAL,SC3:PREMIUM,SC4:PREMIUM
+ *     service.counter.queue.names : SC1,SC2,SC3,SC4
+ *
+ * Now for each generated token, based on its category that token will be assigned to one of its suitable service counter.
+ * TokenGenerationService will publish the token to its assigned service counter's queue name(kafka topic) and then
+ * the responsible service counter will consume that token and serve it.
+ *
+ *     Example:
+ *         If generated token is :  {Token {tokenNumber:6, tokenCategory:PREMIUM}, ServiceCounter:SC7 }
+ *      Then this message will be published on kafka topic "SC7" and the corresponding service counter which already
+ *      has subscribed to "SC7" will consume this message at some point in future and serve it.
+ *
+ * @See
+ * {@link com.brillio.tms.tokenGeneration.TokenGenerationServiceImpl#generateTokenAndAssignServiceCounter}
+ *
+ */
 public class ServiceCounter implements IServiceCounter {
 
     private final BlockingQueue<Token> tokensQueue;

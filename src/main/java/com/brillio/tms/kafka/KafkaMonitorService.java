@@ -15,6 +15,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * This class monitors the kafka server running's status.
+ * The interested client classes can register themselves to listen the kafka server.
+ * See {@link KafkaMonitorService#startMonitoring(KafkaServiceListener)}
+ *
+ * It checks the status of kafka server periodically {@link TMSConfig#getKafkaServerPingInterval()},
+ * You can change the period by following setting { server.monitor.interval.millis } in kafka.properties file
+ */
 @AppService
 @Service
 public class KafkaMonitorService implements IAppService, IKafkaServiceMonitor {

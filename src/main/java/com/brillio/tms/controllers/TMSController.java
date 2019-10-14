@@ -16,6 +16,43 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ *  SpringRest controller to provide HTTP POST access points so that a caller can generate a token number.
+ *  See {@link TMSController#generateToken(GenerateTokenRequest)} HTTP POST request mapping method.
+ *
+ *  Example:
+ *
+ *  Sample Request: See {@link GenerateTokenRequest}
+ *
+ *  A HTTP POST request sample json body:
+ *
+     {
+         "applicant" : {
+            "name" : "Prashant"
+         },
+         "document" : {
+             "applicantName" : "Prashant",
+             "documentNum" : 1
+         },
+         "tokenCategory" : "PREMIUM"
+     }
+
+    Sample Response: See {@link GenerateTokenResponse}
+
+     {
+         "token": {
+             "tokenNumber": 5,
+             "tokenCategory": "PREMIUM"
+         },
+         "applicant": {
+            "name": "Prashant"
+         },
+         "serviceCounter": "SC8",
+         "errorMessage": ""
+     }
+
+ *
+ */
 @RestController
 @RequestMapping("brillio/tms")
 public class TMSController {

@@ -1,9 +1,7 @@
 package com.brillio.tms.tokenGeneration;
 
-import com.brillio.tms.models.Applicant;
-import com.brillio.tms.models.ApplicantTokenRecord;
-import com.brillio.tms.models.AssignedToken;
-import com.brillio.tms.models.Token;
+import com.brillio.tms.enums.TokenCategory;
+import com.brillio.tms.models.*;
 import com.brillio.tms.tokenService.IServiceCounter;
 import com.brillio.tms.tokenService.ServiceCounterRegistry;
 import org.slf4j.Logger;
@@ -15,7 +13,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
-
+/**
+ *  It assigns a Service counter to the requested token with the help of {@link ServiceCounterRegistry}
+ *  See also {@link TokenGenerationServiceImpl#generateTokenAndAssignServiceCounter}
+ */
 @Service
 public class AssignServiceCounterService implements IAssignServiceCounterService {
 
