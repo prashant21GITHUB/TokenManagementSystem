@@ -1,7 +1,7 @@
 package com.brillio.tms.kafka;
 
-import com.brillio.tms.tokenGeneration.Applicant;
-import com.brillio.tms.tokenGeneration.Token;
+import com.brillio.tms.models.Applicant;
+import com.brillio.tms.models.Token;
 
 import java.io.Serializable;
 

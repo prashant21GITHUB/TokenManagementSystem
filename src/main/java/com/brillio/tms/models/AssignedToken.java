@@ -1,6 +1,5 @@
 package com.brillio.tms.models;
 
-import com.brillio.tms.models.Token;
 import com.brillio.tms.tokenService.IServiceCounter;
 
 public class AssignedToken {

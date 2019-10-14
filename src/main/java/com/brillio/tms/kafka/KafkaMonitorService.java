@@ -20,7 +20,7 @@ public class KafkaMonitorService implements IAppService, IKafkaServiceMonitor {
     private final KafkaTopicService kafkaTopicService;
     private final List<KafkaServiceListener> listenerList;
     private ExecutorService executorService;
-    private final AtomicBoolean isServiceRunning = new AtomicBoolean(false);
+    private final AtomicBoolean keepMonitoring = new AtomicBoolean(false);
 
     @Autowired
     public KafkaMonitorService(TMSConfig config, KafkaTopicService kafkaTopicService) {
@@ -46,10 +46,10 @@ public class KafkaMonitorService implements IAppService, IKafkaServiceMonitor {
         executorService.submit(new Runnable() {
             @Override
             public void run() {
-                isServiceRunning.set(true);
+                keepMonitoring.set(true);
                 boolean status;
                 try {
-                    while (isServiceRunning.get()) {
+                    while (keepMonitoring.get()) {
                         status = kafkaTopicService.isKafkaServerRunning();
                         for (KafkaServiceListener listener : listenerList) {
                             listener.onRunningStatusChanged(status);
@@ -65,7 +65,7 @@ public class KafkaMonitorService implements IAppService, IKafkaServiceMonitor {
 
     @Override
     public void stop() {
-        isServiceRunning.set(false);
+        keepMonitoring.set(false);
         executorService.shutdown();
     }
 }

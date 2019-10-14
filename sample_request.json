@@ -1,0 +1,10 @@
+{
+  "applicant" : {
+    "name" : "Prashant"
+  },
+  "document" : {
+    "applicantName" : "Prashant",
+    "documentNum" : 2
+  },
+  "tokenCategory" : "NORMAL"
+}

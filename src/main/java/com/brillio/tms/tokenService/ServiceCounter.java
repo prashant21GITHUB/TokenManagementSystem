@@ -79,9 +79,8 @@ public class ServiceCounter implements IServiceCounter {
                            tokensQueue.clear();
                            break;
                        }
-//                       System.out.println("Processing: { Token:" + token.getTokenNumber() +
-//                            ", Category:"+token.getTokenCategory().name()+", "+
-//                            " ServiceCounter:" + this.counterName + " }");
+                       System.out.println("Serving: {" + token +
+                            ", ServiceCounter:" + this.counterName + " }");
                    } catch (InterruptedException e) {
                        e.printStackTrace();
                    }

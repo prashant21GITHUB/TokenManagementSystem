@@ -25,4 +25,12 @@ public class Token implements Serializable {
     public TokenCategory getTokenCategory() {
         return tokenCategory;
     }
+
+    @Override
+    public String toString() {
+        return "Token {" +
+                "tokenNumber:" + tokenNumber +
+                ", tokenCategory:" + tokenCategory +
+                "}";
+    }
 }

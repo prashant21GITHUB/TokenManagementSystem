@@ -1,0 +1,11 @@
+{
+  "token": {
+    "tokenNumber": 8,
+    "tokenCategory": "NORMAL"
+  },
+  "applicant": {
+    "name": "Prashant"
+  },
+  "serviceCounter": "SC1",
+  "errorMessage": ""
+}

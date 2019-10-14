@@ -46,7 +46,7 @@ public class AssignServiceCounterService implements IAssignServiceCounterService
 
             @Override
             public void onSuccess(@Nullable SendResult<String, ApplicantTokenRecord> stringStringSendResult) {
-                System.out.println(jsonSerializer.convertToJsonString(record));
+                System.out.println("Assigned: " + jsonSerializer.convertToJsonString(record));
             }
         });
     }

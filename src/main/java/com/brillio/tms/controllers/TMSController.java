@@ -1,5 +1,6 @@
 package com.brillio.tms.controllers;
 
+import com.brillio.tms.enums.TokenCategory;
 import com.brillio.tms.exceptions.DocumentVerificationException;
 import com.brillio.tms.kafka.IKafkaServiceMonitor;
 import com.brillio.tms.models.AssignedToken;
@@ -33,16 +34,19 @@ public class TMSController {
         GenerateTokenResponse response = new GenerateTokenResponse(request.getApplicant());
         if(isServiceRunning.get()) {
             try {
-                Optional<AssignedToken> assignedTokenOptional = tokenGenerationService.generateToken(request.getApplicant(),
-                        request.getDocument());
-                if (assignedTokenOptional.isPresent()) {
-                    AssignedToken assignedToken = assignedTokenOptional.get();
-                    Token token = assignedToken.getToken();
-                    IServiceCounter serviceCounter = assignedToken.getServiceCounter();
-                    response.setToken(token);
-                    response.setServiceCounter(serviceCounter.getName());
+                if(request.getTokenCategory() == null) {
+                    response.setErrorMessage("Invalid tokenCategoty, input category as NORMAL or PREMIUM");
                 } else {
-                    response.setErrorMessage("Failed to generate token");
+                    Optional<AssignedToken> assignedTokenOptional = getAssignedToken(request);
+                    if (assignedTokenOptional.isPresent()) {
+                        AssignedToken assignedToken = assignedTokenOptional.get();
+                        Token token = assignedToken.getToken();
+                        IServiceCounter serviceCounter = assignedToken.getServiceCounter();
+                        response.setToken(token);
+                        response.setServiceCounter(serviceCounter.getName());
+                    } else {
+                        response.setErrorMessage("Failed to generate token");
+                    }
                 }
             } catch (DocumentVerificationException e) {
                 response.setErrorMessage(e.getMessage());
@@ -53,29 +57,38 @@ public class TMSController {
         return response;
     }
 
-    @PostMapping(value = "/generatePremiumToken")
-    @ResponseBody
-    public GenerateTokenResponse generatePremiumToken(@RequestBody GenerateTokenRequest request) {
-        GenerateTokenResponse response = new GenerateTokenResponse(request.getApplicant());
-        if(isServiceRunning.get()) {
-            try {
-                Optional<AssignedToken> assignedTokenOptional = tokenGenerationService.generatePremiumToken(request.getApplicant(),
-                        request.getDocument());
-                if (assignedTokenOptional.isPresent()) {
-                    AssignedToken assignedToken = assignedTokenOptional.get();
-                    Token token = assignedToken.getToken();
-                    IServiceCounter serviceCounter = assignedToken.getServiceCounter();
-                    response.setToken(token);
-                    response.setServiceCounter(serviceCounter.getName());
-                } else {
-                    response.setErrorMessage("Failed to generate token");
-                }
-            } catch (DocumentVerificationException e) {
-                response.setErrorMessage(e.getMessage());
-            }
-        } else {
-            response.setErrorMessage("Kafka server not running");
+    private Optional<AssignedToken> getAssignedToken(GenerateTokenRequest request) throws DocumentVerificationException {
+        TokenCategory tokenCategory = TokenCategory.NORMAL;
+        if(request.getTokenCategory().equals(TokenCategory.PREMIUM)) {
+            tokenCategory = TokenCategory.PREMIUM;
         }
-        return response;
+        return tokenGenerationService.generateToken(request.getApplicant(),
+                request.getDocument(), tokenCategory);
     }
+
+//    @PostMapping(value = "/generatePremiumToken")
+//    @ResponseBody
+//    public GenerateTokenResponse generatePremiumToken(@RequestBody GenerateTokenRequest request) {
+//        GenerateTokenResponse response = new GenerateTokenResponse(request.getApplicant());
+//        if(isServiceRunning.get()) {
+//            try {
+//                Optional<AssignedToken> assignedTokenOptional = tokenGenerationService.generatePremiumToken(request.getApplicant(),
+//                        request.getDocument());
+//                if (assignedTokenOptional.isPresent()) {
+//                    AssignedToken assignedToken = assignedTokenOptional.get();
+//                    Token token = assignedToken.getToken();
+//                    IServiceCounter serviceCounter = assignedToken.getServiceCounter();
+//                    response.setToken(token);
+//                    response.setServiceCounter(serviceCounter.getName());
+//                } else {
+//                    response.setErrorMessage("Failed to generate token");
+//                }
+//            } catch (DocumentVerificationException e) {
+//                response.setErrorMessage(e.getMessage());
+//            }
+//        } else {
+//            response.setErrorMessage("Kafka server not running");
+//        }
+//        return response;
+//    }
 }

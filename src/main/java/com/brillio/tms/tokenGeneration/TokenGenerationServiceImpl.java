@@ -36,19 +36,13 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
         this.documentVerificationService = documentVerificationService;
         this.tokenGenerator = tokenGenerator;
         this.assignerService = assignerService;
-        TOTAL_COUNTERS = config.getTokenGenerationCountersSize();
+        this.TOTAL_COUNTERS = config.getTokenGenerationCountersSize();
     }
 
     @Override
-    public Optional<AssignedToken> generateToken(Applicant applicant,
-                                                 ApplicantDocument document) throws DocumentVerificationException {
-        return generateTokenAndAssignServiceCounter(applicant, document, TokenCategory.NORMAL);
-    }
-
-    @Override
-    public Optional<AssignedToken> generatePremiumToken(Applicant applicant,
-                                                        ApplicantDocument document) throws DocumentVerificationException {
-        return generateTokenAndAssignServiceCounter(applicant, document, TokenCategory.PREMIUM);
+    public Optional<AssignedToken> generateToken(Applicant applicant,  ApplicantDocument document,
+                                                 TokenCategory category) throws DocumentVerificationException {
+        return generateTokenAndAssignServiceCounter(applicant, document, category);
     }
 
     private Optional<AssignedToken> generateTokenAndAssignServiceCounter(Applicant applicant, ApplicantDocument document,
@@ -62,16 +56,18 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
         return Optional.empty();
     }
 
-    private Optional<Token> generateNextToken(Applicant applicant, ApplicantDocument document, TokenCategory tokenCategory)
-            throws DocumentVerificationException {
+    private Optional<Token> generateNextToken(Applicant applicant, ApplicantDocument document,
+                                              TokenCategory tokenCategory) throws DocumentVerificationException {
         try {
-            documentVerificationService.verifyDocuments(applicant, document);
-            Future<Token> tokenFuture = executorService.submit(
-                    () -> tokenGenerator.generateToken(tokenCategory)
-            );
-            return Optional.of(tokenFuture.get());
-        } catch (DocumentVerificationException ex) {
-            throw  ex;
+            VerificationStatus verificationStatus = documentVerificationService.verifyDocuments(applicant, document);
+            if(verificationStatus.isSuccess()) {
+                Future<Token> tokenFuture = executorService.submit(
+                        () -> tokenGenerator.generateToken(tokenCategory)
+                );
+                return Optional.of(tokenFuture.get());
+            } else {
+                throw new DocumentVerificationException(verificationStatus.getErrorMessage());
+            }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return Optional.empty();
