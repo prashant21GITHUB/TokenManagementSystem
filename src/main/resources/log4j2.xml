@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN" monitorInterval="30">
     <Properties>
-        <Property name="LOG_PATTERN">%d{yyyy:MM:dd'T'HH:mm:ss.SSS} %p Thread-[%thread] [%logger]- %m%n</Property>
+        <Property name="LOG_PATTERN">%d{yyyy.MM.dd'T'HH:mm:ss.SSS} %p Thread-[%thread] [%logger]- %m%n</Property>
         <Property name="APP_LOG_ROOT">LOGS</Property>
     </Properties>
     <Appenders>
@@ -19,11 +19,27 @@
             <DefaultRolloverStrategy max="10" />
         </RollingFile>
 
+        <RollingFile name="monitor"
+                     fileName="${APP_LOG_ROOT}/monitor.log"
+                     filePattern="${APP_LOG_ROOT}/monitor-%d{yyyy:MM:dd}-%i.log">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="1GB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10" />
+        </RollingFile>
+
     </Appenders>
     <Loggers>
         <Root level="info">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Root>
+
+        <Logger name="KafkaMonitorService" additivity="false" level="info">
+            <AppenderRef ref="monitor" />
+            <AppenderRef ref="console"  />
+        </Logger>
+
     </Loggers>
 </Configuration>

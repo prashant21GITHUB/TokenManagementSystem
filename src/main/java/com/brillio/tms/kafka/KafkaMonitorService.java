@@ -51,6 +51,7 @@ public class KafkaMonitorService implements IAppService, IKafkaServiceMonitor {
             t.setName("KMS_thread");
             return t;
         });
+        LOGGER.info("Start monitoring kafka server running status");
         executorService.submit(() -> {
             keepMonitoring.set(true);
             boolean status;

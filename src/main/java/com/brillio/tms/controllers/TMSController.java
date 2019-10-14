@@ -36,9 +36,9 @@ public class TMSController {
     @PostMapping(value = "/generateToken")
     @ResponseBody
     public GenerateTokenResponse generateToken(@RequestBody GenerateTokenRequest request) {
-        GenerateTokenResponse response = new GenerateTokenResponse(request.getApplicant());
         long requestId = reqId.getAndIncrement();
         LOGGER.info("ReqId: " + requestId+ ", Request: "+ request);
+        GenerateTokenResponse response = new GenerateTokenResponse(request.getApplicant());
         boolean success = false;
         if(isServiceRunning.get()) {
             try {
