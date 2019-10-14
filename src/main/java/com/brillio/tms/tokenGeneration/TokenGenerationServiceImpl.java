@@ -5,14 +5,16 @@ import com.brillio.tms.TMSConfig;
 import com.brillio.tms.annotation.AppService;
 import com.brillio.tms.enums.TokenCategory;
 import com.brillio.tms.exceptions.DocumentVerificationException;
-import com.brillio.tms.models.Applicant;
-import com.brillio.tms.models.ApplicantDocument;
-import com.brillio.tms.models.AssignedToken;
-import com.brillio.tms.models.Token;
+import com.brillio.tms.models.*;
+import com.brillio.tms.tokenService.IServiceCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.Optional;
 import java.util.concurrent.*;
@@ -26,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  *  2 -Verify the applicant documents and generate a token number.
  *  3 -Request the {@link AssignServiceCounterService} to assign a service counter to this token
+ *  4 -Send the token to kafka topic(queue name) corresponding to assigned service counter
  *
  *  See method: {@link TokenGenerationServiceImpl#generateTokenAndAssignServiceCounter}
  */
@@ -41,17 +44,20 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
     private final DocumentVerificationService documentVerificationService;
     private final TokenGenerator tokenGenerator;
     private final AssignServiceCounterService assignerService;
+    private final KafkaTemplate<String, ApplicantTokenRecord> kafkaTemplate;
     private final Logger LOGGER = LoggerFactory.getLogger("TokenGenerationService");
 
     @Autowired
     public TokenGenerationServiceImpl(DocumentVerificationService documentVerificationService,
                                       TokenGenerator tokenGenerator,
                                       AssignServiceCounterService assignerService,
-                                      TMSConfig config) {
+                                      TMSConfig config,
+                                      KafkaTemplate<String, ApplicantTokenRecord> kafkaTemplate) {
         this.documentVerificationService = documentVerificationService;
         this.tokenGenerator = tokenGenerator;
         this.assignerService = assignerService;
         this.TOTAL_COUNTERS = config.getTokenGenerationCountersSize();
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
@@ -66,7 +72,9 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
                             Token token =  tokenGenerator.generateToken(tokenCategory);
                             AssignedToken assignedToken = assignerService.assignToken(token, applicant, requestId);
                             LOGGER.info( "ReqId: "+ requestId+ ", Token generated: " + token.getTokenNumber() +
-                                    ", Assigned counter: " + assignedToken.getServiceCounter().getName());
+                                    ", Assigned counter: " + assignedToken.getServiceCounter().getName()+
+                                    ", Kafka topic: "+ assignedToken.getServiceCounter().getQueueName());
+                            sendTokenToServiceCounterKafkaTopic(token, applicant, assignedToken.getServiceCounter(), requestId);
                             return assignedToken;
                         }
                 );
@@ -78,6 +86,21 @@ public class TokenGenerationServiceImpl implements IAppService, ITokenGeneration
             e.printStackTrace();
             return Optional.empty();
         }
+    }
+
+    private void sendTokenToServiceCounterKafkaTopic(final Token token, final Applicant applicant, final IServiceCounter serviceCounter, long requestId) {
+        ApplicantTokenRecord record = new ApplicantTokenRecord(applicant, token, serviceCounter.getName());
+        String kafkaTopic = serviceCounter.getQueueName();
+        kafkaTemplate.send(kafkaTopic, record).addCallback(new ListenableFutureCallback<SendResult<String, ApplicantTokenRecord>>() {
+            @Override
+            public void onFailure(Throwable throwable) {
+                LOGGER.error("Failed to send msg to kafka server: " + token +", RequestId: "+ requestId+", Error: "+throwable);
+            }
+
+            @Override
+            public void onSuccess(@Nullable SendResult<String, ApplicantTokenRecord> stringStringSendResult) {
+            }
+        });
     }
 
     @Override

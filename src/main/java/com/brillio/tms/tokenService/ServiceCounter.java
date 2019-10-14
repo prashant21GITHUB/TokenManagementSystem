@@ -3,8 +3,6 @@ package com.brillio.tms.tokenService;
 import com.brillio.tms.enums.TokenCategory;
 import com.brillio.tms.kafka.KafkaConsumerService;
 import com.brillio.tms.kafka.KafkaMonitorService;
-import com.brillio.tms.models.Applicant;
-import com.brillio.tms.models.ApplicantDocument;
 import com.brillio.tms.models.ApplicantTokenRecord;
 import com.brillio.tms.models.Token;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -107,10 +105,10 @@ public class ServiceCounter implements IServiceCounter {
                            break;
                        }
                        LOGGER.info("Serving: {" + token +
-                               ", ServiceCounter:" + this.counterName + " }");
+                               ", ServiceCounter:" + this.counterName + ", KafkaTopic: "+ this.queueName+ "}");
                    } catch (InterruptedException e) {
                        LOGGER.error("Failed to get token to serve, Service counter "
-                               + this.counterName);
+                               + this.counterName + ", KafkaTopic: "+ this.queueName+ "}");
                    }
                }
             });
