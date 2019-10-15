@@ -10,7 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,8 +41,8 @@ public class KafkaTopicService {
         try {
             adminClient = AdminClient.create(kafkaProperties);
             NewTopic newTopic = new NewTopic(topicName, 1, (short)1); //new NewTopic(topicName, numPartitions, replicationFactor)
+            LOGGER.info("Creat kafka topic: "+ topicName);
             adminClient.createTopics(Collections.singletonList(newTopic));
-            LOGGER.info("Created kafka topic: "+ topicName);
         } catch (Exception e) {
             LOGGER.error("Failed to create topic: "+topicName+ ", Error: " + e.getMessage());
         } finally {

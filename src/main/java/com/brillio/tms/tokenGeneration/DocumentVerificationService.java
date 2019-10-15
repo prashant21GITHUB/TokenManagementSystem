@@ -17,7 +17,7 @@ public class DocumentVerificationService implements IDocumentVerificationService
         if(document.getDocumentNum() == null || document.getDocumentNum() < 1) {
             return new VerificationStatus(false, "Invalid documents, document num is missing or not valid");
         }
-        if(applicant.getName().equals(document.getApplicantName())) {
+        if(applicant.getName().equalsIgnoreCase(document.getApplicantName())) {
             return new VerificationStatus(true, "");
         } else {
             return new VerificationStatus(false, "Invalid documents, applicant name mismatch");

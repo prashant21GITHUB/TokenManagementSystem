@@ -1,23 +1,22 @@
 package com.brillio.tms;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
+
 /**
- * See {@literal application.properties} and {@literal kafka.properties} files under resources directory
+ * See {@literal application.properties} file under resources directory
  *
  */
 @Component
-@PropertySources({
-        @PropertySource("classpath:application.properties"),
-        @PropertySource("classpath:kafka.properties")
-})
 public class TMSConfig {
 
     //Kafka settings
-    @Value(value = "${server.ping.interval.millis:5000}")
+    @Value(value = "${server.monitor.interval.millis:5000}")
     private long kafkaServerPingInterval;
     @Value(value = "${bootstrap.servers:localhost:9092}")
     private String bootstrapServers;
@@ -41,6 +40,26 @@ public class TMSConfig {
     private String[] serviceCounterQueueNames;
     @Value(value = "${token.generation.counters.size}")
     private int tokenGenerationCountersSize;
+
+    private final Logger LOGGER = LoggerFactory.getLogger("TMSConfig");
+
+    @PostConstruct
+    public void logSettings() {
+        LOGGER.info("********** Application configurations: START **********");
+        LOGGER.info("bootstrap.servers = "+ getBootstrapServers());
+        LOGGER.info("group.id = "+ getGroupId());
+        LOGGER.info("max.poll.records = "+ getMaxPollRecords());
+        LOGGER.info("enable.auto.commit = "+ getEnableAutoCommitFlag());
+        LOGGER.info("auto.commit.interval.ms = "+ getAutoCommitIntervalMillis());
+        LOGGER.info("session.timeout.ms = "+ getSessionTimeoutMillis());
+        LOGGER.info("heartbeat.interval.ms = "+  getHeartbeatIntervalMillis());
+        LOGGER.info("server.ping.interval.millis = "+ getKafkaServerPingInterval());
+        LOGGER.info("token.generation.counters.size = "+ getTokenGenerationCountersSize());
+        LOGGER.info("service.counter.id.category.pairs = "+ Arrays.asList(getServiceCounterList()));
+        LOGGER.info("service.counter.queue.names = "+ Arrays.asList(getServiceCounterQueueNames()));
+        LOGGER.info("********** Application configurations: END **********");
+    }
+
 
     public long getKafkaServerPingInterval() {
         return kafkaServerPingInterval;

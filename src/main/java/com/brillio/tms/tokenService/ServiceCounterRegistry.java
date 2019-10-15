@@ -22,8 +22,13 @@ import java.util.Map;
  * It then creates the service counter instances and also start and stop counters.
  * See {@link ServiceCounter#startCounter()} and {@link ServiceCounter#stopCounter()}
  *
- *  It also balances the load on each service counter and assigns the token request in circular order based on token
- *  number and category (by maintaining dedicated service counters lists based on category- {@link TokenCategory})
+ *  It also balances the load on each service counter by assigning the token request to a service counter
+ *  by calculating mod using below formula.
+ *
+ *      tokenNumber % (No. of service counters in corresponding token category)
+ *
+ * @see {@link TokenCategory}
+ *
  */
 @AppService
 @Repository
@@ -85,12 +90,13 @@ public class ServiceCounterRegistry implements IServiceCounterRegistryService, I
     public IServiceCounter getServiceCounterForToken(Token token) {
         int tokenNumber = token.getTokenNumber();
         TokenCategory tokenCategory = token.getTokenCategory();
+        int key;
         if(TokenCategory.PREMIUM.equals(tokenCategory)) {
-            int hash = tokenNumber % premiumCategoryCounters.size();
-            return premiumCategoryCounters.get(hash);
+            key = tokenNumber % premiumCategoryCounters.size();
+            return premiumCategoryCounters.get(key);
         } else {
-            int hash = tokenNumber % normalCategoryCounters.size();
-            return normalCategoryCounters.get(hash);
+            key = tokenNumber % normalCategoryCounters.size();
+            return normalCategoryCounters.get(key);
         }
     }
 

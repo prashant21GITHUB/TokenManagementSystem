@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -21,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * See {@link KafkaMonitorService#startMonitoring(KafkaServiceListener)}
  *
  * It checks the status of kafka server periodically {@link TMSConfig#getKafkaServerPingInterval()},
- * You can change the period by following setting { server.monitor.interval.millis } in kafka.properties file
+ * You can change the period by following setting { server.monitor.interval.millis } in application.properties file
  */
 @AppService
 @Service

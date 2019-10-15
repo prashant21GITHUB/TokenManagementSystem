@@ -52,7 +52,7 @@
 
         <Logger name="KafkaMonitorService" additivity="false" level="info">
             <AppenderRef ref="monitor" />
-            <AppenderRef ref="console"  />
+            <!--<AppenderRef ref="console"  />-->
         </Logger>
 
 
