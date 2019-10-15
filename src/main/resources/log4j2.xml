@@ -15,6 +15,7 @@
             <PatternLayout pattern="${LOG_PATTERN}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="1GB" />
+                <TimeBasedTriggeringPolicy interval="1" />
             </Policies>
             <DefaultRolloverStrategy max="10" />
         </RollingFile>
@@ -25,21 +26,40 @@
             <PatternLayout pattern="${LOG_PATTERN}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="1GB" />
+                <TimeBasedTriggeringPolicy interval="1" />
             </Policies>
             <DefaultRolloverStrategy max="10" />
         </RollingFile>
 
     </Appenders>
     <Loggers>
-        <Root level="info">
-            <AppenderRef ref="console" />
+
+        <Logger name="org.apache.kafka" additivity="false" level="warn">
             <AppenderRef ref="file" />
-        </Root>
+            <AppenderRef ref="console"  />
+        </Logger>
+
+        <Logger name="org.springframework" additivity="false" level="warn">
+            <AppenderRef ref="file" />
+            <AppenderRef ref="console"  />
+        </Logger>
+
 
         <Logger name="KafkaMonitorService" additivity="false" level="info">
             <AppenderRef ref="monitor" />
             <AppenderRef ref="console"  />
         </Logger>
+
+
+        <!--<AsyncLogger name="KafkaMonitorService" additivity="false" level="info">-->
+        <!--<AppenderRef ref="monitor" />-->
+        <!--<AppenderRef ref="console"  />-->
+        <!--</AsyncLogger>-->
+
+        <Root level="info">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="file" />
+        </Root>
 
     </Loggers>
 </Configuration>
