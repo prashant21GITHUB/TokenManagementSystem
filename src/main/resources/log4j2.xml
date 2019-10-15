@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" monitorInterval="30">
+<Configuration status="INFO" monitorInterval="30">
     <Properties>
         <Property name="LOG_PATTERN">%d{yyyy.MM.dd'T'HH:mm:ss.SSS} %p Thread-[%thread] [%logger]- %m%n</Property>
         <Property name="APP_LOG_ROOT">LOGS</Property>
@@ -33,6 +33,11 @@
 
     </Appenders>
     <Loggers>
+
+        <AsyncLogger name="TMSController" additivity="false" level="info">
+            <AppenderRef ref="file" />
+            <AppenderRef ref="console"  />
+        </AsyncLogger>
 
         <Logger name="org.apache.kafka" additivity="false" level="warn">
             <AppenderRef ref="file" />
