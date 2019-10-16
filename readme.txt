@@ -1,4 +1,4 @@
-This file contains clear step-by-step instructions on how to build, deployment, test setup and configurations of application.
+This file contains clear step-by-step instructions on how to build, deployment, test and configure the application.
 
 It includes below sections :
 
@@ -22,8 +22,9 @@ This application starts a RESTful webservice which accepts requests from users t
 verification. It assigns a service counter to generated token. The assigned service counter is dedicated to serve either
 NORMAL or PREMIUM category tokens. The token category is passed in token generation request by user.
 
-Internally, each service counter is subscribed to its corresponding queue name(kafka) and the generated token message is
+Internally, each service counter is subscribed to its corresponding queue name(a kafka topic) and the generated token message is
 published to its assigned service counter's queue name.
+Note - You can also get more detailed action, requests and responses in application.log file. See Logging section in this file.
 
 Through below settings you can provide the required information to application:
 
