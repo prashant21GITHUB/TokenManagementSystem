@@ -232,3 +232,6 @@ File- application.properties : >>>>>>>>
                      assigned service counter information. All the traces can be related with each other through the requestId
                      token number.
    - monitor.log     : Traces the kafka server availability status.
+   
+   
+   
