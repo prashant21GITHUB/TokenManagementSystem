@@ -32,14 +32,14 @@ Through below settings you can provide the required information to application:
         token.generation.counters.size : 4
 
 #  To provide the service counter ID and the token category to be served by it
-        service.counter.id.category.pairs : SC1:NORMAL,SC2:NORMAL,SC3:PREMIUM,SC4:PREMIUM
+        service.counter.id.category.pairs : SC1:NORMAL,SC2:NORMAL,SC3:PREMIUM
 
 #  Through below setting you can provide the queue name for each service counter, The same queue name will be used as
    kafka topic from where the Service counter can subscribe the tokens to be served.
    The queue names must be in same order the service counters are being defined in "service.counter.id.category.pairs"
    setting
 
-        service.counter.queue.names : SC1,SC2,SC3,SC4
+        service.counter.queue.names : SC1,SC2,SC3
 
 
 
@@ -144,7 +144,7 @@ Through below settings you can provide the required information to application:
          "applicant": {
            "name": "Prashant"
          },
-         "serviceCounter": "SC4",
+         "serviceCounter": "SC3",
          "errorMessage": ""
        }
 
@@ -197,9 +197,9 @@ File- application.properties : >>>>>>>>
 -- To configure the number of token generation counters
        token.generation.counters.size : 4
 -- To configure the service counter ID and its category
-       service.counter.id.category.pairs : SC1:NORMAL,SC2:NORMAL,SC3:PREMIUM,SC4:PREMIUM
+       service.counter.id.category.pairs : SC1:NORMAL,SC2:NORMAL,SC3:PREMIUM
 -- To configure service counter queue name (kafka topic)
-       service.counter.queue.names : SC1,SC2,SC3,SC4
+       service.counter.queue.names : SC1,SC2,SC3
 
 
 -- kafka server's address <HOST>:<PORT>
